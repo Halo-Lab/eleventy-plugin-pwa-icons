@@ -11,8 +11,6 @@ Every [PWA](https://en.wikipedia.org/wiki/Progressive_web_application) needs ico
 ## Get started
 
 > This plugin uses [`pwa-assets-generator`](https://github.com/onderceylan/pwa-asset-generator) under the hood, so, we recommend to read about it first 🥸.
->
-> Also we do not allow to customize generator's behavior, except for our own options. _This may change in future_, so stay with us ✊!
 
 ### Installation
 
@@ -43,6 +41,7 @@ interface PWAIconsOptions {
   icons?: {
     /**
      * Path to source image for PWA icons.
+     * By default, it is `src/icon.png`.
      *
      * Should be relative to _current working directory_.
      */
@@ -51,12 +50,21 @@ interface PWAIconsOptions {
      * Directory to which output PWA icons.
      *
      * Should be relative to _current working directory_.
+     *
+     * @deprecated in favour of _publicDirectory_.
      */
     outputDirectory?: string;
+    /**
+     * Public directory into which to output all PWA icons.
+     *
+     * Should be relative to _output_ directory.
+     */
+    publicDirectory?: string;
   };
   manifest?: {
     /**
      * Path to `manifest.json` file.
+     * By default, it is `src/manifest.json`.
      *
      * Should be relative to _current working directory_.
      */
@@ -65,17 +73,36 @@ interface PWAIconsOptions {
      * Directory to which output updated `manifest.json`.
      *
      * Should be relative to _current working directory_.
+     *
+     * @deprecated in favour of _publicDirectory_.
      */
     outputDirectory?: string;
+    /**
+     * Public directory into which to output updated `manifest.json`.
+     *
+     * Should be relative to _output_ directory.
+     */
+    publicDirectory?: string;
   };
+  /**
+   * Controls whether plugin should work or not.
+   * By default, it is enabled in _production_ mode.
+   */
+  enabled?: boolean;
+  /** Logs a result of generated items to whatever you want. */
+  logger?: LoggerFunction;
+  /**
+   * Options that control work of [pwa-asset-generator](https://www.npmjs.com/package/pwa-asset-generator).
+   *
+   * See [here](https://github.com/onderceylan/pwa-asset-generator) about available options.
+   */
+  generatorOptions?: Options;
 }
 ```
 
-> It is assumed that _outputDirectory_ is also in Eleventy's _build_ directory. [By default its name is `_site`.](https://www.11ty.dev/docs/config/#output-directory)
+By default output directory for icons is _your_build_directory/icons/_.
 
-By default, path to image is _src/icon.png_ and output for icons is \__site/icons/_.
-
-Default path for manifest is _src/manifest.json_ and output - \__site/manifest.json_.
+Default path for manifest output - _your_build_directory/manifest.json_.
 
 That is all 👐 The plugin will do a remaining dirty job by itself.
 

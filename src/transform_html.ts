@@ -1,26 +1,30 @@
 import path from 'path';
 
+import chalk from 'chalk';
 import { ManifestJsonIcon } from 'pwa-asset-generator/dist/models/result';
 
 import { once } from './once';
-import { generateImages } from './generate_images';
 import { updateManifest } from './update_manifest';
-import { done, oops, start } from './pretty';
 import { buildManifestLinkTag } from './build_manifest_link';
-import { removeFirstDirectory } from './remove_first_directory';
+import { done, oops, start, warn } from './pretty';
 import {
-  PLUGIN_NAME,
   DEFAULT_IMAGE_NAME,
   DEFAULT_MANIFEST_NAME,
   DEFAULT_ICONS_DIRECTORY,
-  DEFAULT_BUILD_DIRECTORY,
   DEFAULT_SOURCE_DIRECTORY,
 } from './constants';
+import {
+  Options,
+  generateImages,
+  LoggerFunction,
+  GenerateImageOptions,
+} from './generate_images';
 
-export interface PWAIconsOptions {
+interface TransformOptions {
   icons?: {
     /**
      * Path to source image for PWA icons.
+     * By default, it is `src/icon.png`.
      *
      * Should be relative to _current working directory_.
      */
@@ -29,12 +33,21 @@ export interface PWAIconsOptions {
      * Directory to which output PWA icons.
      *
      * Should be relative to _current working directory_.
+     *
+     * @deprecated in favour of _publicDirectory_.
      */
     outputDirectory?: string;
+    /**
+     * Public directory into which to output all PWA icons.
+     *
+     * Should be relative to _output_ directory.
+     */
+    publicDirectory?: string;
   };
   manifest?: {
     /**
      * Path to `manifest.json` file.
+     * By default, it is `src/manifest.json`.
      *
      * Should be relative to _current working directory_.
      */
@@ -43,74 +56,118 @@ export interface PWAIconsOptions {
      * Directory to which output updated `manifest.json`.
      *
      * Should be relative to _current working directory_.
+     *
+     * @deprecated in favour of _publicDirectory_.
      */
     outputDirectory?: string;
+    /**
+     * Public directory into which to output updated `manifest.json`.
+     *
+     * Should be relative to _output_ directory.
+     */
+    publicDirectory?: string;
   };
 }
 
-const handleImages = once(({ icons = {} }: PWAIconsOptions) => {
-  start(PLUGIN_NAME, 'Starting icons generation');
+export type PWAIconsOptions = TransformOptions & {
+  logger?: LoggerFunction;
+  /** Decide whether plugin should do its work. */
+  enabled?: boolean;
+  generatorOptions?: Options;
+};
 
-  const pathToRawImage = path.resolve(
-    icons.pathToRawImage ??
-      path.join(DEFAULT_SOURCE_DIRECTORY, DEFAULT_IMAGE_NAME)
-  );
-  const outputIconsDirectory = path.resolve(
-    icons.outputDirectory ??
-      path.join(DEFAULT_BUILD_DIRECTORY, DEFAULT_ICONS_DIRECTORY)
-  );
-  const outputIconsPublicDirectory = removeFirstDirectory(
-    icons.outputDirectory ??
-      path.join(DEFAULT_BUILD_DIRECTORY, DEFAULT_ICONS_DIRECTORY)
-  );
+const handleImages = once(
+  ({
+    icons = {},
+    logger,
+    options,
+    buildDirectory,
+  }: Pick<TransformOptions, 'icons'> & { buildDirectory: string } & Pick<
+      GenerateImageOptions,
+      'logger' | 'options'
+    >) => {
+    start('Starting icons generation');
 
-  return generateImages({
-    input: pathToRawImage,
-    output: outputIconsDirectory,
-    publicDirectory: outputIconsPublicDirectory,
-  }).then(
-    (info) => {
-      done(PLUGIN_NAME, 'Icons for PWA were successfully generated');
-      return info;
-    },
-    (error) => {
-      oops(PLUGIN_NAME, error);
-      return { html: '', manifestJsonContent: [] };
+    const absolutePathToRawImage = path.resolve(
+      icons.pathToRawImage ??
+        path.join(DEFAULT_SOURCE_DIRECTORY, DEFAULT_IMAGE_NAME)
+    );
+    const outputIconsDirectory = path.resolve(
+      icons.outputDirectory ??
+        path.join(
+          buildDirectory,
+          icons.publicDirectory ?? DEFAULT_ICONS_DIRECTORY
+        )
+    );
+    if (icons.outputDirectory !== undefined) {
+      warn(
+        `${chalk.bold(
+          'icons.outputDirectory'
+        )} option is deprecated. Use ${chalk.bold(
+          'icons.publicDirectory'
+        )} instead.`
+      );
     }
-  );
-});
+
+    return generateImages({
+      input: absolutePathToRawImage,
+      output: outputIconsDirectory,
+      publicDirectory: icons.publicDirectory ?? DEFAULT_ICONS_DIRECTORY,
+      options,
+      logger,
+    }).then(
+      (info) => {
+        done('Icons for PWA were successfully generated');
+        return info;
+      },
+      (error) => {
+        oops(error);
+        return { html: '', manifestJsonContent: [] };
+      }
+    );
+  }
+);
 
 const handleManifest = once(
   async (
     manifestJsonContent: ReadonlyArray<ManifestJsonIcon>,
-    { manifest = {} }: PWAIconsOptions
+    {
+      manifest = {},
+      buildDirectory,
+    }: Pick<TransformOptions, 'manifest'> & { buildDirectory: string }
   ) => {
     const pathToManifest = path.resolve(
       manifest.pathToManifest ??
         path.join(DEFAULT_SOURCE_DIRECTORY, DEFAULT_MANIFEST_NAME)
     );
-    const outputManifestDirectory = path.resolve(
-      manifest.outputDirectory ?? path.join(DEFAULT_BUILD_DIRECTORY)
-    );
 
     const manifestName = path.basename(pathToManifest);
-    const publicManifestDirectory = removeFirstDirectory(
-      manifest.outputDirectory ?? path.join(DEFAULT_BUILD_DIRECTORY)
+
+    const pathToOutputManifest = path.resolve(
+      manifest.outputDirectory ??
+        path.join(buildDirectory, manifest.publicDirectory ?? ''),
+      manifestName
     );
-    const manifestPublicUrl = path.join(publicManifestDirectory, manifestName);
+
+    if (manifest.outputDirectory !== undefined) {
+      warn(
+        `${chalk.bold(
+          'manifest.outputDirectory'
+        )} is deprecated. Use ${chalk.bold(
+          'manifest.publicDirectory'
+        )} instead.`
+      );
+    }
 
     await updateManifest({
-      icons: manifestJsonContent,
       pathToManifest,
-      pathToOutputManifest: path.join(outputManifestDirectory, manifestName),
-    }).catch((error) => oops(PLUGIN_NAME, error));
+      icons: manifestJsonContent,
+      pathToOutputManifest,
+    }).catch(oops);
 
-    done(
-      PLUGIN_NAME,
-      'Manifest was successfully updated and moved to build directory'
-    );
+    done('Manifest was successfully updated and moved to build directory');
 
-    return manifestPublicUrl;
+    return path.join(manifest.publicDirectory ?? '', manifestName);
   }
 );
 
@@ -120,19 +177,26 @@ const handleManifest = once(
  */
 export const generateAndInsertIcons = async (
   html: string,
-  { icons = {}, manifest = {} }: PWAIconsOptions = {}
+  buildDirectory: string,
+  { icons, manifest, generatorOptions: options, logger }: PWAIconsOptions
 ) => {
-  const cache = await handleImages({ icons });
+  const { html: imagesHTML, manifestJsonContent } = await handleImages({
+    icons,
+    buildDirectory,
+    options,
+    logger,
+  });
 
-  const manifestPublicUrl = await handleManifest(cache.manifestJsonContent, {
+  const manifestPublicUrl = await handleManifest(manifestJsonContent, {
     manifest,
+    buildDirectory,
   });
 
   const htmlWithIcons = html
     .replace('</head>', buildManifestLinkTag(manifestPublicUrl) + '</head>')
-    .replace('</head>', cache.html + '</head>');
+    .replace('</head>', imagesHTML + '</head>');
 
-  done(PLUGIN_NAME, 'Links of generated icons were injected into HTML');
+  done('Links of generated icons were injected into HTML');
 
   return htmlWithIcons;
 };

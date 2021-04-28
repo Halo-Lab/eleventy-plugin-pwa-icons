@@ -1,4 +1,17 @@
-# [1.0.0] - 2021-04-04
+# [1.1.0] - 2021-04-28
+
+### Added
+
+- `enabled` option to control situations when plugin should work.
+- `generatorOptions` option to control result of [pwa-asset-generator](https://github.com/onderceylan/pwa-asset-generator).
+- `logger` options for debugging purposes.
+
+### Changed
+
+- Deprecated `manifest.outputDirectory` in favour of `manifest.publicDirectory`.
+- Deprecated `icons.outputDirectory` in favour of `icons.publicDirectory`.
+
+## [1.0.0] - 2021-04-04
 
 ### Added
 
