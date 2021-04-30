@@ -1,4 +1,14 @@
-# [1.1.0] - 2021-04-28
+# [1.1.1] - 2021-04-30
+
+### Changed
+
+- Decrease version of `pwa-asset-generator` peer dependency.
+
+### Fixed
+
+- Fix color of time in terminal's output on yellow background.
+
+## [1.1.0] - 2021-04-28
 
 ### Added
 
