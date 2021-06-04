@@ -1,6 +1,6 @@
 /**
- * Executes fucntion only once.
- * If there will be multiple invokations,
+ * Executes function only once.
+ * If there will be multiple invocations,
  * then cached result will be returned.
  */
 export const onceCached = <F extends (...args: ReadonlyArray<any>) => any>(
