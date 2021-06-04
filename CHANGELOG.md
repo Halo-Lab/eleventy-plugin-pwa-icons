@@ -1,4 +1,10 @@
-# [1.1.2] - 2021-06-04
+# [1.1.3] - 2021-06-04
+
+### Fixed
+
+- Bundling `@fluss/core` dependency into output code caused an error, while installing dependency.
+
+## [1.1.2] - 2021-06-04
 
 ### Fixed
 
