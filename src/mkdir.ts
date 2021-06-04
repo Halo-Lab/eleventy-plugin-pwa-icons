@@ -1,7 +1,5 @@
-import fs from 'fs';
+import { promises, existsSync } from 'fs';
 
 /** Recursively creates directories. */
-export const makeDirectories = async (path: string) =>
-  void (
-    fs.existsSync(path) || (await fs.promises.mkdir(path, { recursive: true }))
-  );
+export const makeDirectories = async (path: string): Promise<void> =>
+  void (existsSync(path) || (await promises.mkdir(path, { recursive: true })));

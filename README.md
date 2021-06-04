@@ -2,7 +2,7 @@
 
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
-Generates icon and splash screen images, favicons and mstile images. Updates `manifest.json` and every HTML file with the generated images according to [Web App Manifest specs](https://www.w3.org/TR/appmanifest/) and [Apple Human Interface guidelines](https://developer.apple.com/design/human-interface-guidelines/).
+Generates icons and splash screen images, favicons and mstile images. Updates `manifest.json` and every HTML file with the generated images according to [Web App Manifest specs](https://www.w3.org/TR/appmanifest/) and [Apple Human Interface guidelines](https://developer.apple.com/design/human-interface-guidelines/).
 
 ## Intention
 
@@ -47,14 +47,6 @@ interface PWAIconsOptions {
      */
     pathToRawImage?: string;
     /**
-     * Directory to which output PWA icons.
-     *
-     * Should be relative to _current working directory_.
-     *
-     * @deprecated in favour of _publicDirectory_.
-     */
-    outputDirectory?: string;
-    /**
      * Public directory into which to output all PWA icons.
      *
      * Should be relative to _output_ directory.
@@ -69,14 +61,6 @@ interface PWAIconsOptions {
      * Should be relative to _current working directory_.
      */
     pathToManifest?: string;
-    /**
-     * Directory to which output updated `manifest.json`.
-     *
-     * Should be relative to _current working directory_.
-     *
-     * @deprecated in favour of _publicDirectory_.
-     */
-    outputDirectory?: string;
     /**
      * Public directory into which to output updated `manifest.json`.
      *

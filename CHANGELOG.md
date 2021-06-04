@@ -1,4 +1,10 @@
-# [1.1.1] - 2021-04-30
+# [1.1.2] - 2021-06-04
+
+### Fixed
+
+- Links of icons are rendered with absolute urls now.
+
+## [1.1.1] - 2021-04-30
 
 ### Changed
 

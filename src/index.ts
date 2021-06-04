@@ -1,11 +1,7 @@
-import { sep } from 'path';
+import { getOutputDirectory } from './get_build_directory';
 
 import { isProduction } from './mode';
 import { generateAndInsertIcons, PWAIconsOptions } from './transform_html';
-
-// Eleventy shows output path relative to current working directory,
-// so we can get output directory as fist top-level directory.
-let buildDirectory: string;
 
 /**
  * Generates splash screens and icons, favicons, mstile images for PWA.
@@ -20,23 +16,29 @@ export const icons = (
     generatorOptions = {},
     enabled = isProduction(),
   }: PWAIconsOptions = {}
-) => {
+): void => {
   if (enabled) {
     config.addTransform(
       'icons',
-      async (content: string, outputPath: string) => {
-        buildDirectory ??= outputPath.split(sep)[0];
+      async function (
+        this: { outputPath: string },
+        content: string,
+        outputPath: string
+      ): Promise<string> {
+        const outputFilePath = this.outputPath ?? outputPath;
 
-        if (outputPath.endsWith('html')) {
-          return generateAndInsertIcons(content, buildDirectory, {
-            icons,
-            logger,
-            manifest,
-            generatorOptions,
-          });
-        }
-
-        return content;
+        return outputFilePath.endsWith('html')
+          ? generateAndInsertIcons(
+              content,
+              getOutputDirectory(outputFilePath),
+              {
+                icons,
+                logger,
+                manifest,
+                generatorOptions,
+              }
+            )
+          : content;
       }
     );
   }

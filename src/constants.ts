@@ -5,3 +5,5 @@ export const DEFAULT_MANIFEST_NAME = 'manifest.json';
 
 export const DEFAULT_ICONS_DIRECTORY = 'icons';
 export const DEFAULT_SOURCE_DIRECTORY = 'src';
+
+export const URL_DELIMITER = '/';
