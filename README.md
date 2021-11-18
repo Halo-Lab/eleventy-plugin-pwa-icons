@@ -1,5 +1,7 @@
 # eleventy-plugin-pwa-icons 🎨
 
+**⚠️ This code moves to [the new location](https://github.com/Halo-Lab/eleventy-packages). Please, refer there to get a new development status.**
+
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 Generates icons and splash screen images, favicons and mstile images. Updates `manifest.json` and every HTML file with the generated images according to [Web App Manifest specs](https://www.w3.org/TR/appmanifest/) and [Apple Human Interface guidelines](https://developer.apple.com/design/human-interface-guidelines/).
